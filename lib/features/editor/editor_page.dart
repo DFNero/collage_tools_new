@@ -896,7 +896,7 @@ class _EditorPageState extends State<EditorPage> {
             ),
           ),
         ),
-        Expanded(
+        Expanded( 
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 2,
@@ -1106,11 +1106,11 @@ class _EditorPageState extends State<EditorPage> {
   void _showRotatePanel() {
     if (selected == null) return;
     
-    // Safety normalization before showing slider to avoid bounds exception
+    // Safety normalization before showing slider to avoid bounds exception / safety nya rotasi biar gk aneh
     double safeRot = selected!.rotation % (2 * math.pi);
     if (safeRot > math.pi) safeRot -= 2 * math.pi;
     if (safeRot < -math.pi) safeRot += 2 * math.pi;
-    // clamp it directly if floating bounds get weird
+    // clamp it directly if floating bounds get weird / clamp nya rotasi biar gk aneh
     if (safeRot > math.pi) safeRot = math.pi;
     if (safeRot < -math.pi) safeRot = -math.pi;
     selected!.rotation = safeRot;
@@ -1138,6 +1138,8 @@ class _EditorPageState extends State<EditorPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  // ini 4 tombol preset rotate
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -1148,9 +1150,11 @@ class _EditorPageState extends State<EditorPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
+
+                  // ini slider dan manggil slider di line 
                   Row(
                     children: [
-                      const Icon(Icons.rotate_left, color: Colors.white54),
+                      const Icon(Icons.rotate_left, color: Colors.white54), 
                       Expanded(
                         child: Slider(
                           value: selected!.rotation,
@@ -1168,7 +1172,7 @@ class _EditorPageState extends State<EditorPage> {
                     ],
                   ),
                   Text(
-                    '${(selected!.rotation * 180 / math.pi).toInt()}°',
+                    '${(selected!.rotation * 180 / math.pi).toInt()}°', // ini text yang angka slider
                     style: const TextStyle(color: Colors.blueAccent),
                   ),
                   const SizedBox(height: 20),
@@ -1181,7 +1185,7 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  Widget _buildRotatePresetButton(
+  Widget _buildRotatePresetButton( // 4 TOMBOL PRESET ROTATE
     String label,
     double degrees,
     StateSetter setModalState,
@@ -1193,11 +1197,11 @@ class _EditorPageState extends State<EditorPage> {
       ),
       onPressed: () {
         setState(() {
-          selected!.rotation = degrees;
+          selected!.rotation = degrees; // nyambung kode line 1141
         });
         setModalState(() {});
       },
-      child: Text(label, style: const TextStyle(color: Colors.white)),
+      child: Text(label, style: const TextStyle(color: Colors.white)), 
     );
   }
 
@@ -1235,7 +1239,7 @@ class _EditorPageState extends State<EditorPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildMirrorOption(
+                _buildMirrorOption( // HORIZONTAL MIRROR
                   icon: Icons.flip_rounded,
                   label: 'Horizontal',
                   isActive: selected!.flipX,
@@ -1247,7 +1251,7 @@ class _EditorPageState extends State<EditorPage> {
                   },
                 ),
                 const SizedBox(width: 24),
-                _buildMirrorOption(
+                _buildMirrorOption( // VERTICAL MIRROR
                   icon: Icons.flip_rounded,
                   label: 'Vertical',
                   isActive: selected!.flipY,
@@ -1301,12 +1305,12 @@ class _EditorPageState extends State<EditorPage> {
               angle: rotateIcon ? 1.5708 : 0, // 90 degrees for vertical
               child: Icon(
                 icon,
-                color: isActive ? Colors.blueAccent : Colors.white70,
+                color: isActive ? Colors.blueAccent : Colors.white70, // warna icon mirror
                 size: 36,
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // text nya icon mirror
             Text(
               label,
