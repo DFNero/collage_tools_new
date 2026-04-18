@@ -221,37 +221,6 @@ TUJUAN:
          - Mendukung pull-to-refresh.
          - Menampilkan empty state jika belum ada kolase.
 
-    [FILE] collage_title.dart
-    --------------------------
-    TUJUAN:
-      Widget tile sederhana untuk menampilkan satu gambar kolase dengan
-      tombol delete (via popup menu).
-
-    FUNGSI:
-      - Menampilkan gambar kolase sebagai background penuh (Image.network + BoxFit.cover).
-      - Menampilkan PopupMenuButton pojok kanan atas dengan opsi "Hapus".
-      - Merupakan versi awal/sederhana dari CollageCard; kemungkinan sudah
-        digantikan oleh CollageCard di implementasi terbaru.
-
-    CATATAN:
-      File ini tampaknya sudah tidak aktif digunakan (legacy/unused) karena
-      home_page.dart menggunakan CollageCard, bukan CollageTile dari file ini.
-
-    [FILE] preview_page.dart
-    --------------------------
-    TUJUAN:
-      Halaman preview untuk menampilkan gambar kolase dalam ukuran penuh.
-
-    FUNGSI:
-      - Menampilkan satu gambar dari URL jaringan (Image.network).
-      - Mendukung zoom/pan interaktif menggunakan InteractiveViewer.
-
-    CATATAN:
-      File ini adalah versi sederhana yang hanya mendukung gambar remote.
-      Di home_page.dart terdapat _PreviewPage (private class) yang lebih
-      lengkap karena mendukung gambar lokal maupun remote.
-      File ini kemungkinan juga sudah tidak aktif digunakan (legacy/unused).
-
     ============================================================
     [FOLDER] lib/features/home/widgets/
     ============================================================
