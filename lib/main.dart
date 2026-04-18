@@ -5,11 +5,14 @@ import 'features/home/home_page.dart';
 import 'services/offline_queue_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+// berisi file konfigurasi supabase key dan url
+import 'core/supabase.client.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    url: 'https://pjfoomtbjnjrnggxioxc.supabase.co', // replace
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZm9vbXRiam5qcm5nZ3hpb3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NDU2NDMsImV4cCI6MjA4MzUyMTY0M30.Z5rMrKptyFgSxP0iyfsfNgPq3uNhVU5ecEskmqTSz0U',         // replace
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.anonKey,
   );
 
   // Try process queue on app start if online

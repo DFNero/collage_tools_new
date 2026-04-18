@@ -1,0 +1,422 @@
+================================================================================
+  ANALISIS STRUKTUR PROYEK - collage_tools_new/lib
+  Dibuat: 2026-04-18
+================================================================================
+
+RINGKASAN PROYEK
+----------------
+Aplikasi Flutter bernama "Collage Tools" — sebuah editor kolase foto mobile.
+Pengguna dapat memilih 1-4 gambar dari galeri, mengeditnya di canvas interaktif,
+lalu menyimpan hasilnya ke galeri perangkat dan menguploadnya ke cloud (Supabase).
+Aplikasi mendukung mode offline dengan sistem antrian (queue) yang akan otomatis
+mengupload ulang kolase saat koneksi internet tersedia kembali.
+
+================================================================================
+  STRUKTUR LIB
+================================================================================
+
+lib/
+├── main.dart
+├── core/
+│   └── supabase.client.dart
+├── features/
+│   ├── editor/
+│   │   ├── editable_image.dart
+│   │   └── editor_page.dart
+│   └── home/
+│       ├── collage_title.dart
+│       ├── home_page.dart
+│       ├── preview_page.dart
+│       └── widgets/
+│           └── collage_card.dart
+├── models/
+│   └── collage_model.dart
+├── services/
+│   ├── collage_service.dart
+│   └── offline_queue_service.dart
+└── utils/
+    └── gallery_saver.dart
+
+================================================================================
+  DETAIL FILE DAN FOLDER
+================================================================================
+
+--------------------------------------------------------------------------------
+[FILE] lib/main.dart
+--------------------------------------------------------------------------------
+TUJUAN:
+  Entry point utama aplikasi Flutter. File ini dijalankan pertama kali saat
+  aplikasi dibuka.
+
+FUNGSI:
+  - Menginisialisasi Supabase (backend cloud) dengan URL dan anon key project.
+  - Memeriksa status koneksi internet saat app pertama kali dibuka.
+  - Jika online, langsung memproses antrian offline (OfflineQueueService) untuk
+    mengupload kolase yang tertunda.
+  - Menjalankan widget root MyApp yang mengatur tema gelap dan halaman awal (HomePage).
+
+DEPENDENCY PENTING:
+  - supabase_flutter: koneksi ke backend Supabase
+  - connectivity_plus: deteksi status jaringan
+  - OfflineQueueService: pemrosesan antrian upload offline
+
+--------------------------------------------------------------------------------
+[FOLDER] lib/core/
+--------------------------------------------------------------------------------
+TUJUAN:
+  Menyimpan konfigurasi global dan inisialisasi layanan inti (core) aplikasi
+  yang digunakan bersama di seluruh lapisan aplikasi.
+
+  [FILE] supabase.client.dart
+  ----------------------------
+  TUJUAN:
+    Menyimpan konstanta konfigurasi Supabase secara terpusat.
+
+  FUNGSI:
+    - Mendefinisikan class SupabaseConfig dengan dua konstanta:
+        * supabaseUrl : URL proyek Supabase.
+        * anonKey    : Kunci anonim (public) untuk autentikasi API Supabase.
+    - Memisahkan konfigurasi sensitif dari logika bisnis agar mudah diubah
+      atau dikelola.
+
+  CATATAN:
+    File ini adalah kelas konfigurasi statis; tidak melakukan inisialisasi sendiri.
+    Inisialisasi aktual dilakukan di main.dart menggunakan Supabase.initialize().
+
+--------------------------------------------------------------------------------
+[FOLDER] lib/features/
+--------------------------------------------------------------------------------
+TUJUAN:
+  Mengorganisir kode berdasarkan fitur aplikasi (Feature-Based Architecture).
+  Setiap subfolder mewakili satu area fungsional aplikasi.
+
+  ============================================================
+  [FOLDER] lib/features/editor/
+  ============================================================
+  TUJUAN:
+    Berisi semua kode yang berkaitan dengan halaman editor kolase,
+    tempat pengguna memanipulasi gambar di atas canvas.
+
+    [FILE] editable_image.dart
+    ---------------------------
+    TUJUAN:
+      Model data yang merepresentasikan satu gambar yang dapat diedit
+      di atas canvas editor.
+
+    FUNGSI:
+      - Menyimpan semua properti visual dari satu gambar:
+          * file / url   : sumber gambar (lokal atau network)
+          * position     : posisi (x,y) gambar di canvas
+          * scale        : skala/ukuran gambar
+          * rotation     : rotasi dalam radian
+          * width/height : dimensi gambar dalam canvas
+          * flipX/flipY  : status mirror horizontal/vertikal
+      - Menyimpan state sementara saat gesture (pinch/scale) sedang berlangsung:
+          * gestureStartScale, gestureStartRotation, dst.
+      - Menyediakan dua constructor:
+          * EditableImage()         : untuk gambar file lokal
+          * EditableImage.network() : untuk gambar dari URL
+
+    [FILE] editor_page.dart  [FILE TERBESAR: ~1546 baris]
+    -------------------------------------------------------
+    TUJUAN:
+      Halaman utama editor kolase. Ini adalah inti dari seluruh aplikasi.
+
+    FUNGSI UTAMA:
+      1. CANVAS INTERAKTIF
+         - Menampilkan canvas 360x360 piksel sebagai area kerja kolase.
+         - Menampilkan semua gambar (EditableImage) di atas canvas menggunakan Stack.
+         - Mendukung drag (pan) untuk memindahkan gambar.
+         - Mendukung pinch-to-scale untuk mengubah ukuran gambar.
+         - Mendukung gesture rotasi dua jari.
+         - Membatasi posisi gambar agar tidak keluar dari batas canvas (_clampPosition).
+
+      2. TOOLBAR (Bottom Bar)
+         - Tombol-tombol alat edit:
+             * Scale slider      : mengatur ukuran gambar yang dipilih
+             * Rotate            : memutar gambar (panel dengan slider & preset 90°)
+             * Mirror            : flip horizontal atau vertikal
+             * Template Picker   : menerapkan layout template kolase
+             * Add Image         : menambahkan gambar baru ke canvas
+             * Delete            : menghapus gambar yang dipilih
+             * Background        : memilih warna background canvas
+
+      3. TEMPLATE SYSTEM
+         - _showTemplatePicker()     : membuka bottom sheet pemilih template
+         - _applyTemplate(index)     : menerapkan template layout ke semua gambar
+         - _getTemplateNormalizedRects() : menghitung posisi/ukuran setiap gambar
+           per template (layout kisi, landscape, portrait, dsb.)
+         - _getTemplateCount(count)  : menghitung jumlah template tersedia
+           berdasarkan jumlah gambar (2, 3, atau 4 gambar)
+         - Gap slider                : mengatur jarak antar gambar dalam template
+         - Sort by visual position   : gambar diurutkan berdasarkan posisi fisiknya
+           di canvas (atas ke bawah, kiri ke kanan) saat template diterapkan.
+         - TemplateIconPainter       : CustomPainter yang menggambar ikon mini
+           preview layout template di dalam grid pemilih template.
+
+      4. EXPORT & SAVE
+         - _exportCanvasBytes()  : mengkonversi canvas ke bytes PNG menggunakan
+           RepaintBoundary + RenderRepaintBoundary.
+         - _saveAndClose()       : flow lengkap simpan:
+             a. Deseleksi gambar (hilangkan border biru)
+             b. Export canvas ke bytes
+             c. Simpan ke galeri perangkat
+             d. Cek koneksi internet
+             e. Jika online: upload ke Supabase Storage + insert ke database
+             f. Jika offline: masukkan ke OfflineQueueService untuk retry nanti
+         - _showExportDialog()   : dialog pilihan resolusi export (1x, 2x, 3x)
+         - _shareLocalFile()     : membagikan hasil kolase via share sheet OS
+
+      5. UPLOAD KE CLOUD
+         - _uploadToSupabase()   : upload file PNG ke Supabase Storage (bucket 'collages')
+         - _saveToDatabase()     : menyimpan record URL gambar ke tabel 'collages'
+
+      6. BACK NAVIGATION GUARD
+         - _onWillPop()          : menampilkan dialog konfirmasi jika pengguna
+           mencoba keluar tanpa menyimpan.
+
+  ============================================================
+  [FOLDER] lib/features/home/
+  ============================================================
+  TUJUAN:
+    Berisi semua kode untuk halaman beranda — galeri kolase yang sudah dibuat.
+
+    [FILE] home_page.dart  [~490 baris]
+    -------------------------------------
+    TUJUAN:
+      Halaman utama (beranda) yang menampilkan daftar/galeri semua kolase.
+
+    FUNGSI UTAMA:
+      1. FETCH KOLASE
+         - Mengambil daftar kolase dari Supabase database (remote).
+         - Mengambil item antrian offline dari OfflineQueueService (lokal).
+         - Menggabungkan keduanya: item lokal (pending) di atas, remote di bawah.
+         - Menampilkan loading indicator saat fetch berlangsung.
+
+      2. CREATE KOLASE
+         - Tombol "Create New" → membuka image picker (max 4 gambar).
+         - Mengarahkan ke EditorPage dengan gambar yang dipilih.
+         - Merefresh daftar setelah kembali dari editor.
+
+      3. DELETE KOLASE
+         - _confirmDelete()    : dialog konfirmasi sebelum menghapus.
+         - _deleteLocalCollage(): menghapus item dari OfflineQueueService (belum diupload).
+         - _deleteRemoteCollage(): menghapus file dari Supabase Storage dan 
+           record dari database.
+
+      4. EDIT KOLASE
+         - _editCollage()      : membuka EditorPage dengan gambar kolase yang dipilih.
+         - Jika kolase lokal   : langsung buka file lokal.
+         - Jika kolase remote  : download file ke direktori temp dulu, lalu buka editor.
+
+      5. OFFLINE AWARENESS
+         - Mendengarkan perubahan status koneksi (Connectivity().onConnectivityChanged).
+         - Saat terdeteksi online, otomatis memproses antrian offline dan
+           menampilkan notifikasi sukses upload.
+         - Badge "Pending" ditampilkan pada kartu kolase yang belum terupload.
+         - Badge di app bar menampilkan jumlah item pending.
+
+      6. GRID DISPLAY
+         - Menampilkan kolase dalam grid 2 kolom dengan CollageCard.
+         - Mendukung pull-to-refresh.
+         - Menampilkan empty state jika belum ada kolase.
+
+    [FILE] collage_title.dart
+    --------------------------
+    TUJUAN:
+      Widget tile sederhana untuk menampilkan satu gambar kolase dengan
+      tombol delete (via popup menu).
+
+    FUNGSI:
+      - Menampilkan gambar kolase sebagai background penuh (Image.network + BoxFit.cover).
+      - Menampilkan PopupMenuButton pojok kanan atas dengan opsi "Hapus".
+      - Merupakan versi awal/sederhana dari CollageCard; kemungkinan sudah
+        digantikan oleh CollageCard di implementasi terbaru.
+
+    CATATAN:
+      File ini tampaknya sudah tidak aktif digunakan (legacy/unused) karena
+      home_page.dart menggunakan CollageCard, bukan CollageTile dari file ini.
+
+    [FILE] preview_page.dart
+    --------------------------
+    TUJUAN:
+      Halaman preview untuk menampilkan gambar kolase dalam ukuran penuh.
+
+    FUNGSI:
+      - Menampilkan satu gambar dari URL jaringan (Image.network).
+      - Mendukung zoom/pan interaktif menggunakan InteractiveViewer.
+
+    CATATAN:
+      File ini adalah versi sederhana yang hanya mendukung gambar remote.
+      Di home_page.dart terdapat _PreviewPage (private class) yang lebih
+      lengkap karena mendukung gambar lokal maupun remote.
+      File ini kemungkinan juga sudah tidak aktif digunakan (legacy/unused).
+
+    ============================================================
+    [FOLDER] lib/features/home/widgets/
+    ============================================================
+    TUJUAN:
+      Sub-folder khusus menyimpan widget UI yang digunakan dalam HomePage.
+
+      [FILE] collage_card.dart
+      -------------------------
+      TUJUAN:
+        Widget kartu (card) UI untuk menampilkan satu kolase di grid beranda.
+
+      FUNGSI:
+        - Menampilkan gambar kolase (remote: CachedNetworkImage, lokal: Image.file).
+        - Placeholder loading saat gambar remote masih diunduh.
+        - Error widget bergambar ikon "broken_image" jika gagal load.
+        - Action bar di bawah kartu dengan dua tombol: Edit dan Delete.
+        - Callback onTap, onEdit, onDelete yang diterima dari HomePage.
+        - Desain gelap premium dengan rounded corner (radius 20), shadow, dan
+          border tipis.
+
+      DEPENDENCY:
+        - cached_network_image: untuk cache dan load gambar network secara efisien.
+
+--------------------------------------------------------------------------------
+[FOLDER] lib/models/
+--------------------------------------------------------------------------------
+TUJUAN:
+  Menyimpan class model data (data classes / DTOs) yang merepresentasikan
+  entitas dari database atau API.
+
+  [FILE] collage_model.dart
+  --------------------------
+  TUJUAN:
+    Model data yang merepresentasikan satu record kolase dari database Supabase.
+
+  FUNGSI:
+    - Mendefinisikan class CollageModel dengan properti:
+        * id        : identifikasi unik kolase (dari Supabase)
+        * imageUrl  : URL publik gambar kolase di Supabase Storage
+    - Menyediakan factory constructor fromJson() untuk parsing data dari
+      response API Supabase (Map<String, dynamic>).
+
+  CATATAN:
+    Model ini digunakan oleh CollageService. Di home_page.dart, data kolase
+    dibaca langsung sebagai Map<String, dynamic> untuk fleksibilitas tambahan
+    (field 'local', 'created_at', dst.).
+
+--------------------------------------------------------------------------------
+[FOLDER] lib/services/
+--------------------------------------------------------------------------------
+TUJUAN:
+  Menyimpan logika bisnis dan operasi data (service layer) — memisahkan
+  akses data dari tampilan UI.
+
+  [FILE] collage_service.dart
+  ----------------------------
+  TUJUAN:
+    Service untuk operasi CRUD kolase ke Supabase (fetch dan delete).
+
+  FUNGSI:
+    - fetchCollages()    : mengambil semua kolase dari tabel 'collages' Supabase,
+      diurutkan terbaru di atas (descending created_at). Mengembalikan List<CollageModel>.
+    - deleteCollage()    : menghapus satu kolase — pertama record dari tabel
+      'collages', kemudian file dari Supabase Storage (bucket 'collages').
+
+  CATATAN:
+    File ini adalah service layer abstrak yang bersih. Namun di home_page.dart,
+    operasi Supabase dilakukan langsung (tidak melalui CollageService).
+    CollageService mungkin digunakan sebagai utilitas terpisah atau untuk
+    pengembangan di masa depan.
+
+  [FILE] offline_queue_service.dart
+  -----------------------------------
+  TUJUAN:
+    Service singleton untuk mengelola antrian upload offline. Memastikan
+    kolase yang dibuat saat tidak ada koneksi tetap dapat diupload nanti.
+
+  FUNGSI:
+    - Singleton pattern: OfflineQueueService.instance
+    - _getQueueFile()   : mendapatkan referensi file JSON antrian di
+      direktori dokumen aplikasi (offline_queue.json).
+    - addToQueue(file)  : menambahkan file gambar ke antrian. Mencegah duplikat
+      berdasarkan path file.
+    - removeFromQueue(path) : menghapus satu item dari antrian (misal saat
+      pengguna menghapus kolase yang belum terupload).
+    - processQueue()    : memproses semua item dalam antrian — upload ke
+      Supabase Storage, insert ke database, dan hapus dari antrian jika berhasil.
+      Item yang gagal diupload tetap di antrian untuk retry berikutnya.
+    - getQueuedItems()  : mengembalikan daftar semua item yang masih dalam
+      antrian sebagai List<Map<String, dynamic>>.
+
+  FORMAT ANTRIAN (offline_queue.json):
+    [
+      { "path": "/data/.../collage_xxx.png", "created_at": "2026-04-18T..." },
+      ...
+    ]
+
+--------------------------------------------------------------------------------
+[FOLDER] lib/utils/
+--------------------------------------------------------------------------------
+TUJUAN:
+  Menyimpan fungsi utilitas/helper yang bersifat umum dan dapat digunakan
+  di berbagai bagian aplikasi.
+
+  [FILE] gallery_saver.dart
+  --------------------------
+  TUJUAN:
+    Fungsi helper untuk menyimpan hasil kolase (bytes PNG) ke dua lokasi
+    sekaligus: galeri foto perangkat dan direktori lokal aplikasi.
+
+  FUNGSI:
+    saveImageToGallery(Uint8List bytes) → String? (local path):
+      1. Menyimpan gambar ke galeri foto perangkat menggunakan SaverGallery
+         (kualitas 100%, folder "Pictures/CollageTools" di Android).
+      2. Menyimpan salinan file ke direktori dokumen internal aplikasi.
+      3. Mengembalikan path file lokal — digunakan oleh OfflineQueueService
+         untuk referensi file yang akan diupload.
+
+  DEPENDENCY:
+    - saver_gallery    : menyimpan ke galeri foto native Android/iOS
+    - path_provider    : mendapatkan direktori penyimpanan aplikasi
+
+================================================================================
+  RINGKASAN ARSITEKTUR
+================================================================================
+
+Arsitektur proyek menggunakan pola Feature-Based (Folder by Feature) dengan
+pemisahan yang cukup bersih antara lapisan:
+
+  [UI Layer]
+  features/home/home_page.dart       → Beranda (galeri kolase)
+  features/home/widgets/collage_card → widget kartu kolase
+  features/editor/editor_page.dart   → Editor kolase interaktif
+
+  [Data Model Layer]
+  models/collage_model.dart          → Entitas kolase dari Supabase
+  features/editor/editable_image.dart → State gambar di editor
+
+  [Service/Business Logic Layer]
+  services/collage_service.dart      → CRUD ke Supabase
+  services/offline_queue_service.dart → Manajemen antrian offline
+
+  [Utility Layer]
+  utils/gallery_saver.dart           → Simpan gambar ke galeri
+  core/supabase.client.dart          → Konfigurasi koneksi backend
+
+  [Entry Point]
+  main.dart                          → Inisialisasi app & Supabase
+
+ALUR UTAMA APLIKASI:
+  1. Buka app → main.dart inisialisasi Supabase, cek & proses antrian offline
+  2. HomePage tampil → fetch kolase dari Supabase + antrian offline
+  3. Pengguna pilih foto → EditorPage terbuka
+  4. Pengguna edit (drag, scale, rotate, mirror, template, background)
+  5. Simpan → export PNG → simpan ke galeri → upload ke Supabase (atau queue)
+  6. Kembali ke HomePage → galeri direfresh
+
+TEKNOLOGI UTAMA:
+  - Flutter (Dart)
+  - Supabase (cloud backend: database + storage)
+  - connectivity_plus (deteksi jaringan)
+  - image_picker (pilih gambar dari galeri)
+  - saver_gallery (simpan ke galeri perangkat)
+  - cached_network_image (cache gambar network)
+  - share_plus (share hasil kolase)
+  - path_provider (akses direktori file lokal)
+  - RepaintBoundary (export canvas ke gambar)
+
