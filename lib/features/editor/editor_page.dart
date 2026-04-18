@@ -162,15 +162,21 @@ class _EditorPageState extends State<EditorPage> {
       // Sort images visually: top to bottom, then left to right
       // Use center points for better accuracy
       _images.sort((a, b) {
-        final aCenter = Offset(a.position.dx + a.width / 2, a.position.dy + a.height / 2);
-        final bCenter = Offset(b.position.dx + b.width / 2, b.position.dy + b.height / 2);
+        final aCenter = Offset(
+          a.position.dx + a.width / 2,
+          a.position.dy + a.height / 2,
+        );
+        final bCenter = Offset(
+          b.position.dx + b.width / 2,
+          b.position.dy + b.height / 2,
+        );
 
         if ((aCenter.dy - bCenter.dy).abs() > 40) {
           return aCenter.dy.compareTo(bCenter.dy);
         }
         return aCenter.dx.compareTo(bCenter.dx);
       });
-
+  
       for (int i = 0; i < rects.length && i < _images.length; i++) {
         final rect = rects[i];
         final gap = _templateGap;
@@ -203,6 +209,7 @@ class _EditorPageState extends State<EditorPage> {
     });
   }
 
+  // maksimal canvas menerima gambar untuk template
   void _showTemplatePicker() {
     final count = _images.length;
     if (count < 2 || count > 4) {
@@ -214,8 +221,10 @@ class _EditorPageState extends State<EditorPage> {
       return;
     }
 
-    final totalTemplates = _getTemplateCount(count);
+    // untuk menghitung jumlah gambar yang di masukin dan di pakein template apa, Lines 1486
+    final totalTemplates = _getTemplateCount(count,); 
 
+    // panel box template
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey.shade900,
@@ -228,7 +237,9 @@ class _EditorPageState extends State<EditorPage> {
           builder: (context, setModalState) {
             return Container(
               padding: const EdgeInsets.all(20),
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.55),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.55,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -246,7 +257,10 @@ class _EditorPageState extends State<EditorPage> {
                     children: [
                       const Icon(Icons.space_bar, color: Colors.white54),
                       const SizedBox(width: 8),
-                      const Text('Gap', style: TextStyle(color: Colors.white70)),
+                      const Text(
+                        'Gap',
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       Expanded(
                         child: Slider(
                           value: _templateGap,
@@ -262,7 +276,8 @@ class _EditorPageState extends State<EditorPage> {
                               _templateGap = val;
                             });
                             // Re-apply if a template is active
-                            if (_currentLayoutIndex != null && _currentLayoutIndex! < totalTemplates) {
+                            if (_currentLayoutIndex != null &&
+                                _currentLayoutIndex! < totalTemplates) {
                               _applyTemplate(_currentLayoutIndex!);
                             }
                           },
@@ -270,22 +285,30 @@ class _EditorPageState extends State<EditorPage> {
                       ),
                       SizedBox(
                         width: 32,
-                        child: Text('${_templateGap.toInt()}', style: const TextStyle(color: Colors.white70)),
+                        child: Text(
+                          '${_templateGap.toInt()}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.8,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.8,
+                          ),
                       itemCount: totalTemplates,
                       itemBuilder: (context, index) {
-                        return _buildTemplateOption(index, 'Layout ${index + 1}', setModalState);
+                        return _buildTemplateOption(
+                          index,
+                          'Layout ${index + 1}',
+                          setModalState,
+                        );
                       },
                     ),
                   ),
@@ -298,7 +321,12 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  Widget _buildTemplateOption(int index, String label, StateSetter setModalState) {
+  // j
+  Widget _buildTemplateOption(
+    int index,
+    String label,
+    StateSetter setModalState,
+  ) {
     final count = _images.length;
     final isSelected = _currentLayoutIndex == index;
     return GestureDetector(
@@ -313,7 +341,9 @@ class _EditorPageState extends State<EditorPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+              color: isSelected
+                  ? Colors.blueAccent.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.05),
               border: Border.all(
                 color: isSelected ? Colors.blueAccent : Colors.white12,
                 width: isSelected ? 2 : 1,
@@ -339,7 +369,7 @@ class _EditorPageState extends State<EditorPage> {
             style: TextStyle(
               color: isSelected ? Colors.blueAccent : Colors.white70,
               fontSize: 10,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -744,11 +774,11 @@ class _EditorPageState extends State<EditorPage> {
               newRot = newRot % (2 * math.pi);
               if (newRot > math.pi) newRot -= 2 * math.pi;
               if (newRot < -math.pi) newRot += 2 * math.pi;
-              
+
               // Prevent extreme floating point precision issues near the bounds
               if (newRot > math.pi) newRot = math.pi;
               if (newRot < -math.pi) newRot = -math.pi;
-              
+
               item.rotation = newRot;
             }
           });
@@ -896,7 +926,7 @@ class _EditorPageState extends State<EditorPage> {
             ),
           ),
         ),
-        Expanded( 
+        Expanded(
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 2,
@@ -1105,7 +1135,7 @@ class _EditorPageState extends State<EditorPage> {
 
   void _showRotatePanel() {
     if (selected == null) return;
-    
+
     // Safety normalization before showing slider to avoid bounds exception / safety nya rotasi biar gk aneh
     double safeRot = selected!.rotation % (2 * math.pi);
     if (safeRot > math.pi) safeRot -= 2 * math.pi;
@@ -1144,17 +1174,25 @@ class _EditorPageState extends State<EditorPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildRotatePresetButton('0°', 0, setModalState),
-                      _buildRotatePresetButton('90°', math.pi / 2, setModalState),
+                      _buildRotatePresetButton(
+                        '90°',
+                        math.pi / 2,
+                        setModalState,
+                      ),
                       _buildRotatePresetButton('180°', math.pi, setModalState),
-                      _buildRotatePresetButton('-90°', -math.pi / 2, setModalState),
+                      _buildRotatePresetButton(
+                        '-90°',
+                        -math.pi / 2,
+                        setModalState,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
-                  // ini slider dan manggil slider di line 
+                  // ini slider dan manggil slider di line
                   Row(
                     children: [
-                      const Icon(Icons.rotate_left, color: Colors.white54), 
+                      const Icon(Icons.rotate_left, color: Colors.white54),
                       Expanded(
                         child: Slider(
                           value: selected!.rotation,
@@ -1185,7 +1223,8 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  Widget _buildRotatePresetButton( // 4 TOMBOL PRESET ROTATE
+  Widget _buildRotatePresetButton(
+    // 4 TOMBOL PRESET ROTATE
     String label,
     double degrees,
     StateSetter setModalState,
@@ -1201,7 +1240,7 @@ class _EditorPageState extends State<EditorPage> {
         });
         setModalState(() {});
       },
-      child: Text(label, style: const TextStyle(color: Colors.white)), 
+      child: Text(label, style: const TextStyle(color: Colors.white)),
     );
   }
 
@@ -1239,7 +1278,8 @@ class _EditorPageState extends State<EditorPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildMirrorOption( // HORIZONTAL MIRROR
+                _buildMirrorOption(
+                  // HORIZONTAL MIRROR
                   icon: Icons.flip_rounded,
                   label: 'Horizontal',
                   isActive: selected!.flipX,
@@ -1251,7 +1291,8 @@ class _EditorPageState extends State<EditorPage> {
                   },
                 ),
                 const SizedBox(width: 24),
-                _buildMirrorOption( // VERTICAL MIRROR
+                _buildMirrorOption(
+                  // VERTICAL MIRROR
                   icon: Icons.flip_rounded,
                   label: 'Vertical',
                   isActive: selected!.flipY,
@@ -1288,7 +1329,7 @@ class _EditorPageState extends State<EditorPage> {
         decoration: BoxDecoration(
           // background nya icon mirror
           color: isActive
-              ? Colors.blueAccent.withValues(alpha: 0.05) 
+              ? Colors.blueAccent.withValues(alpha: 0.05)
               : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           // border nya icon mirror
@@ -1296,7 +1337,7 @@ class _EditorPageState extends State<EditorPage> {
           // yang '2' itu warna aktif, '1' yang false(abu)
           border: Border.all(
             color: isActive ? Colors.blueAccent : Colors.white24,
-            width: isActive ? 2 : 1, 
+            width: isActive ? 2 : 1,
           ),
         ),
         child: Column(
@@ -1305,7 +1346,9 @@ class _EditorPageState extends State<EditorPage> {
               angle: rotateIcon ? 1.5708 : 0, // 90 degrees for vertical
               child: Icon(
                 icon,
-                color: isActive ? Colors.blueAccent : Colors.white70, // warna icon mirror
+                color: isActive
+                    ? Colors.blueAccent
+                    : Colors.white70, // warna icon mirror
                 size: 36,
               ),
             ),
@@ -1345,23 +1388,29 @@ class TemplateIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const ui.Color.fromARGB(255, 255, 255, 255) // bisa di ganti dan check di template, def = white
+      ..color =
+          const ui.Color.fromARGB(
+            255,
+            255,
+            255,
+            255,
+          ) // bisa di ganti dan check di template, def = white
       ..style = PaintingStyle.fill;
 
     final rects = _getTemplateNormalizedRects(imageCount, layoutIndex);
-    const double gap = 1.5; 
+    const double gap = 1.5;
 
     for (var nRect in rects) {
       double left = nRect.left * size.width + gap;
       double top = nRect.top * size.height + gap;
       double right = nRect.right * size.width - gap;
       double bottom = nRect.bottom * size.height - gap;
-      
+
       if (right > left && bottom > top) {
         // slightly rounded corners for tiny layout preview
         canvas.drawRRect(
-          RRect.fromLTRBR(left, top, right, bottom, const Radius.circular(2)), 
-          paint
+          RRect.fromLTRBR(left, top, right, bottom, const Radius.circular(2)),
+          paint,
         );
       }
     }
@@ -1376,10 +1425,16 @@ List<Rect> _getTemplateNormalizedRects(int imageCount, int layoutIndex) {
   if (imageCount == 2) {
     if (layoutIndex == 0) {
       // Kiri Kanan
-      return [const Rect.fromLTRB(0, 0, 0.5, 1), const Rect.fromLTRB(0.5, 0, 1, 1)];
+      return [
+        const Rect.fromLTRB(0, 0, 0.5, 1),
+        const Rect.fromLTRB(0.5, 0, 1, 1),
+      ];
     } else {
       // Atas Bawah
-      return [const Rect.fromLTRB(0, 0, 1, 0.5), const Rect.fromLTRB(0, 0.5, 1, 1)];
+      return [
+        const Rect.fromLTRB(0, 0, 1, 0.5),
+        const Rect.fromLTRB(0, 0.5, 1, 1),
+      ];
     }
     // jika gambar nya terdeteksi 3, masuk == 3
   } else if (imageCount == 3) {
@@ -1408,7 +1463,7 @@ List<Rect> _getTemplateNormalizedRects(int imageCount, int layoutIndex) {
           const Rect.fromLTRB(0.5, 0, 1, 0.5), // atas kanan
           const Rect.fromLTRB(0, 0.5, 1, 1), // bawah besar
         ];
-      case 4: // Vertical Stack 
+      case 4: // Vertical Stack
         return [
           const Rect.fromLTRB(0, 0, 1, 1 / 3), // atas
           const Rect.fromLTRB(0, 1 / 3, 1, 2 / 3), // tengah
