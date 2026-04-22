@@ -100,8 +100,7 @@ TUJUAN:
     [FILE] editable_image.dart
     ---------------------------
     TUJUAN:
-      Model data yang merepresentasikan satu gambar yang dapat diedit
-      di atas canvas editor.
+      Model data yang merepresentasikan satu gambar yang dapat diedit di atas canvas editor.
 
     FUNGSI:
       - Menyimpan semua properti visual dari satu gambar:

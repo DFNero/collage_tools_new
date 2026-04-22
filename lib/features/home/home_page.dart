@@ -1,16 +1,17 @@
 // lib/features/home/home_page.dart
 
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'widgets/collage_card.dart';
-import '../editor/editor_page.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+
+import '../editor/editor_page.dart';
 import '../../services/offline_queue_service.dart';
-import 'dart:async';
+import 'widgets/collage_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
