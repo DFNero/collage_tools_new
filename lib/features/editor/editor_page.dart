@@ -176,7 +176,7 @@ class _EditorPageState extends State<EditorPage> {
         }
         return aCenter.dx.compareTo(bCenter.dx);
       });
-  
+
       for (int i = 0; i < rects.length && i < _images.length; i++) {
         final rect = rects[i];
         final gap = _templateGap;
@@ -222,7 +222,7 @@ class _EditorPageState extends State<EditorPage> {
     }
 
     // untuk menghitung jumlah gambar yang di masukin dan di pakein template apa, Lines 1486
-    final totalTemplates = _getTemplateCount(count,); 
+    final totalTemplates = _getTemplateCount(count);
 
     // panel box template
     showModalBottomSheet(
@@ -321,7 +321,6 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  // j
   Widget _buildTemplateOption(
     int index,
     String label,
@@ -1231,7 +1230,7 @@ class _EditorPageState extends State<EditorPage> {
   ) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white10,
+        backgroundColor: Colors.white10,  
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: () {
